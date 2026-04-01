@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PhishGuard | Email Analyzer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <h1>PhishGuard AI</h1>
+            <p>Enter email content to analyze for phishing threats.</p>
+        </header>
+
+        <div class="input-area">
+            <textarea id="emailContent" placeholder="Paste the email text here..."></textarea>
+            <button onclick="analyzeEmail()" id="btn">Analyze Now</button>
+        </div>
+
+        <div id="resultBox" class="result-box hidden">
+            <h2 id="status"></h2>
+            <p id="details"></p>
+        </div>
+    </div>
+
+    <script>
+        async function analyzeEmail() {
+            const content = document.getElementById('emailContent').value;
+            const resBox = document.getElementById('resultBox');
+            const btn = document.getElementById('btn');
+
+            if(!content) return alert("Please enter text.");
+
+            btn.innerHTML = "Processing...";
+            btn.disabled = true;
+
+            const response = await fetch('/predict', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({content: content})
+            });
+
+            const data = await response.json();
+            
+            resBox.className = "result-box " + (data.prediction === 1 ? "danger" : "safe");
+            document.getElementById('status').innerText = data.result;
+            document.getElementById('details').innerText = data.prediction === 1 ? 
+                "Warning: This text matches patterns commonly found in phishing scams." : 
+                "No significant threats detected in this text.";
+            
+            btn.innerHTML = "Analyze Now";
+            btn.disabled = false;
+        }
+    </script>
+</body>
+</html>
